@@ -43,7 +43,6 @@ async function ImportExternalMods(api: types.IExtensionApi, external: string[]) 
   for (const modFile of external) {
     const archivePath = path.join(downloadsPath, path.basename(modFile, MOD_FILE_EXT) + '.zip');
     try {
-      log('error', 'wtf', { archivePath, modFile });
       await szip.add(archivePath, [ modFile ], { raw: ['-r'] });
       await fs.removeAsync(modFile);
     } catch (err) {
@@ -123,7 +122,12 @@ function toLOPrefix(context: types.IExtensionContext, mod: types.IMod): string {
   if (props === undefined) {
     return 'ZZZZ-' + mod.id;
   }
+
+  // Retrieve the load order as stored in Vortex's application state.
   const loadOrder = util.getSafe(props.state, ['persistent', 'loadOrder', props.profile.id], []);
+
+  // Find the mod entry in the load order state and insert the prefix in front
+  //  of the mod's name/id/whatever
   const loEntry: ILoadOrderEntry = loadOrder.find(loEntry => loEntry.id === mod.id);
   return (loEntry?.data?.prefix !== undefined)
     ? loEntry.data.prefix + '-' + mod.id
